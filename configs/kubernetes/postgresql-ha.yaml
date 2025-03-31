@@ -1,0 +1,327 @@
+# ==============================================
+# PostgreSQL High Availability Cluster
+# ==============================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+  namespace: database
+  labels:
+    app.aelion.ai/component: postgresql
+    app.aelion.ai/role: service
+spec:
+  type: ClusterIP
+  ports:
+  - name: primary
+    port: 5432
+    targetPort: 5432
+  - name: replica
+    port: 5433
+    targetPort: 5433
+  - name: metrics
+    port: 9187
+    targetPort: 9187
+  selector:
+    app.aelion.ai/component: postgresql
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: postgres-pdb
+  namespace: database
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.aelion.ai/component: postgresql
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+  namespace: database
+  labels:
+    app.aelion.ai/component: postgresql
+spec:
+  serviceName: postgresql
+  replicas: 3
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.aelion.ai/component: postgresql
+  template:
+    metadata:
+      labels:
+        app.aelion.ai/component: postgresql
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+    spec:
+      terminationGracePeriodSeconds: 300
+      securityContext:
+        fsGroup: 999
+        runAsUser: 999
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.aelion.ai/component
+                operator: In
+                values:
+                - postgresql
+            topologyKey: "kubernetes.io/hostname"
+      tolerations:
+      - key: "database"
+        operator: "Exists"
+        effect: "NoSchedule"
+      containers:
+      - name: postgresql
+        image: timescale/timescaledb-ha:pg14-latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: password
+        - name: REPLICATION_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: replication-user
+        - name: REPLICATION_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: replication-password
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: PATRONI_KUBERNETES_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: PATRONI_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: PATRONI_SCOPE
+          value: "aelion-postgres"
+        - name: PATRONI_POSTGRESQL_LISTEN
+          value: "$(POD_IP):5432"
+        - name: PATRONI_POSTGRESQL_CONNECT_ADDRESS
+          value: "$(PATRONI_NAME).postgresql.database.svc.cluster.local:5432"
+        - name: PATRONI_REPLICAS
+          value: "3"
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        - containerPort: 8008
+          name: patroni
+        livenessProbe:
+          exec:
+            command:
+            - patronictl
+            - list
+            - --format=json
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+            - -h
+            - 127.0.0.1
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: "2"
+            memory: "8Gi"
+          limits:
+            cpu: "4"
+            memory: "16Gi"
+        volumeMounts:
+        - name: datadir
+          mountPath: /var/lib/postgresql/data
+        - name: config
+          mountPath: /etc/postgresql
+        - name: tls-certs
+          mountPath: /etc/postgresql/certs
+      - name: pgpool
+        image: bitnami/pgpool:4.4
+        env:
+        - name: PGPOOL_BACKEND_NODES
+          value: "0:postgresql-0.postgresql.database.svc.cluster.local:5432,1:postgresql-1.postgresql.database.svc.cluster.local:5432,2:postgresql-2.postgresql.database.svc.cluster.local:5432"
+        - name: PGPOOL_SR_CHECK_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: monitoring-user
+        - name: PGPOOL_SR_CHECK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: monitoring-password
+        - name: PGPOOL_ENABLE_LDAP
+          value: "no"
+        - name: PGPOOL_NUM_INIT_CHILDREN
+          value: "32"
+        - name: PGPOOL_MAX_POOL
+          value: "64"
+        ports:
+        - containerPort: 5432
+          name: pgpool
+        livenessProbe:
+          tcpSocket:
+            port: 5432
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - /opt/bitnami/scripts/pgpool/healthcheck.sh
+          initialDelaySeconds: 5
+          periodSeconds: 5
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: ssd-encrypted
+      resources:
+        requests:
+          storage: 1Ti
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-config
+  namespace: database
+data:
+  patroni.yaml: |
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: true
+      parameters:
+        max_connections: 500
+        shared_buffers: 4GB
+        work_mem: 32MB
+        maintenance_work_mem: 1GB
+        wal_level: logical
+        archive_mode: on
+        archive_command: 'envdir /etc/wal-e.d/env wal-g wal-push %p'
+        max_wal_senders: 10
+        hot_standby: on
+        log_statement: all
+        log_duration: on
+        logging_collector: on
+        log_filename: 'postgresql-%a.log'
+        log_truncate_on_rotation: on
+        log_rotation_age: 1d
+        log_rotation_size: 1GB
+        ssl: on
+        ssl_cert_file: '/etc/postgresql/certs/server.crt'
+        ssl_key_file: '/etc/postgresql/certs/server.key'
+        ssl_ca_file: '/etc/postgresql/certs/ca.crt'
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secrets
+  namespace: database
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: c3VwZXJzZWNyZXQ=
+  replication-user: cmVwbGljYQ==
+  replication-password: cmVwbGljYXNlY3JldA==
+  monitoring-user: bW9uaXRvcg==
+  monitoring-password: bW9uaXRvcnBhc3M=
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: database
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: wal-g
+            image: wal-g/wal-g:latest
+            env:
+            - name: WALG_S3_PREFIX
+              value: "s3://aelion-postgres-backup/production/"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: aws-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backup-secrets
+                  key: aws-secret-key
+            command: ["/bin/sh", "-c"]
+            args:
+              - wal-g backup-push /var/lib/postgresql/data
+          restartPolicy: OnFailure
+          volumes:
+          - name: datadir
+            persistentVolumeClaim:
+              claimName: datadir-postgresql-0
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-network-policy
+  namespace: database
+spec:
+  podSelector:
+    matchLabels:
+      app.aelion.ai/component: postgresql
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          network.aelion.ai/access: internal
+    ports:
+    - port: 5432
+      protocol: TCP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgresql-monitor
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.aelion.ai/component: postgresql
+  endpoints:
+  - port: metrics
+    interval: 30s
+    scheme: http
+    path: /metrics
