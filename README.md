@@ -73,7 +73,7 @@ graph TD
     Edge_Network -->|WireGuard| Cloud_Providers
     Observability -->|OTLP| Data_Plane
     
-    %% 企业级配色方案
+    %% 
     classDef cloud fill:#3A4F6E,stroke:#2B3A5A;      
     classDef control fill:#1F4788,stroke:#16325C;   
     classDef data fill:#2E8540,stroke:#245C33;      
@@ -125,8 +125,8 @@ open http://localhost:3100
 
 ### Helm Deployment (Production)
 ```
-helm repo add aelion https://helm.biconic.ai
-helm install aelion-agent biconic/biconic-agent \
+helm repo add biconic https://helm.biconic.ai
+helm install biconic-agent biconic/biconic-agent \
   --namespace aelion-prod \
   --set global.tls.autoCert=true \
   --set autoscaler.minReplicas=10 \
