@@ -1,10 +1,11 @@
 syntax = "proto3";
 
-package biconic.agent.v1;
+package sazmir.agent.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
+
 
 // Core Agent Service Definition
 service AgentService {
