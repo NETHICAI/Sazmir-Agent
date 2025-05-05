@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package biconic.task.v1;
+package sazmir.task.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
