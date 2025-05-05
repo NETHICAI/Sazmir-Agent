@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash sazmir
 set -eo pipefail
 
 # ==============================================
