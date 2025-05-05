@@ -1,14 +1,14 @@
-# Biconic AI - Enterprise-Grade Autonomous Agent Swarm Framework
+# Sazmir AI - Enterprise-Grade Autonomous Agent Swarm Framework
 
 ![License](https://img.shields.io/badge/License-Apache_2.0-DF5B33?logo=apache&logoColor=white)
 ![Build Status](https://img.shields.io/github/actions/workflow/status/aelion-ai/core/ci.yml?branch=main)
 
-**Orchestrate thousands of AI agents across hybrid clouds with military-grade security and real-time autonomy.**
+**A scalable AI platform that orchestrates agent swarms via reinforcement learning for autonomous business operations.**
 
-[![Twitter](https://img.shields.io/badge/Twitter-%231DA1F2.svg?logo=Twitter&logoColor=white)](https://twitter.com/BiconicNet)
-[![Twitter](https://img.shields.io/badge/Twitter-%231DA1F2.svg?logo=Twitter&logoColor=white)](https://twitter.com/wanmingchenai)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-%230A66C2.svg?logo=linkedin&logoColor=white)](https://linkedin.com/in/wanmingchen)
-[![Website](https://img.shields.io/badge/Website-000000?logo=Google-Chrome&logoColor=white)](https://biconicai.com/)
+[![Twitter](https://img.shields.io/badge/Twitter-%231DA1F2.svg?logo=Twitter&logoColor=white)](https://twitter.com/SAZMIRLABS)
+[![Twitter](https://img.shields.io/badge/Twitter-%231DA1F2.svg?logo=Twitter&logoColor=white)](https://twitter.com/MCStern77)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-%230A66C2.svg?logo=linkedin&logoColor=white)](https://linkedin.com/in/michael-alan-stern)
+[![Website](https://img.shields.io/badge/Website-000000?logo=Google-Chrome&logoColor=white)](https://sazmirai.com/)
 
 
 ## 🌟 Features
@@ -23,7 +23,7 @@
 ## 🏗️ Architecture
 
 ```mermaid
-%% Biconic  AI Technical Architecture Diagram
+%% sazmir  AI Technical Architecture Diagram
 graph TD
     subgraph Cloud_Providers
         AWS[AWS Region]
@@ -93,7 +93,7 @@ graph TD
 ## 🚀 Quick Start
 ### 1. Run with Docker (Dev Mode)
 ```
-git clone https://github.com/Biconic-ai/core.git
+git clone https://github.com/sazmir-ai/core.git
 cd core/deploy
 
 # Start minimal cluster (Agent + Redis + Observability)
@@ -125,12 +125,12 @@ open http://localhost:3100
 
 ### Helm Deployment (Production)
 ```
-helm repo add biconic https://helm.biconic.ai
-helm install biconic-agent biconic/biconic-agent \
+helm repo add biconic https://helm.sazmir.ai
+helm install biconic-agent sazmir/sazmir-agent \
   --namespace aelion-prod \
   --set global.tls.autoCert=true \
   --set autoscaler.minReplicas=10 \
-  --values https://config.biconic.ai/v1/production.yaml
+  --values https://config.sazmir.ai/v1/production.yaml
 ```
 
 ## ⚙️ Configuration
@@ -139,7 +139,7 @@ helm install biconic-agent biconic/biconic-agent \
 # .env.production
 AELION_DEPLOY_MODE=hybrid
 AELION_CRYPTO_PROVIDER=kyber1024
-AELION_TELEMETRY_ENDPOINT=https://telemetry.biconic.ai/v1/ingest
+AELION_TELEMETRY_ENDPOINT=https://telemetry.sazmir.ai/v1/ingest
 AELION_LICENSE_KEY=eyJhbGciOiJSUzI1NiIsInR5cCI6... # JWT-Encrypted
 ```
 
@@ -158,7 +158,7 @@ AELION_LICENSE_KEY=eyJhbGciOiJSUzI1NiIsInR5cCI6... # JWT-Encrypted
 # Generate quantum-safe certs (Kyber-1024)
 openssl req -x509 -newkey kyber1024 \
   -keyout key.pem -out cert.pem \
-  -days 365 -nodes -subj "/CN=biconic.ai"
+  -days 365 -nodes -subj "/CN=sazmir.ai"
 ```
 
 ### Audit Trails
@@ -171,7 +171,7 @@ qlogger = QuantumAuditLogger(
     post_quantum_sig=True
 )
 qlogger.log_operation(
-    user="admin@biconic.ai",
+    user="admin@sazmir.ai",
     action="agent_scale_up",
     params={"replicas": 100}
 )
