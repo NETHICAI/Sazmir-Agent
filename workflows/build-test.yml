@@ -1,4 +1,4 @@
-name: CI Build, Test, and Security Scan
+name: CI Build, Test, and Security Scan sazmir
 
 on:
   push:
