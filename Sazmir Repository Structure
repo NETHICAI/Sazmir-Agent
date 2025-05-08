@@ -1,4 +1,4 @@
-Sazmir-ai/
+NETHIC-AI/
 ├── .github/                         # GitHub-specific configurations
 │   ├── workflows/                   # GitHub Actions CI/CD
 │   │   ├── build-test.yml           # PR validation (unit/integration tests)
