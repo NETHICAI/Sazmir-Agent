@@ -1,14 +1,14 @@
-# Sazmir AI - Enterprise-Grade Autonomous Agent Swarm Framework
+# NETHIC AI - Enterprise-Grade Autonomous Agent Swarm Framework
 
 ![License](https://img.shields.io/badge/License-Apache_2.0-DF5B33?logo=apache&logoColor=white)
 ![Build Status](https://img.shields.io/github/actions/workflow/status/aelion-ai/core/ci.yml?branch=main)
 
-**A scalable AI platform that orchestrates agent swarms via reinforcement learning for autonomous business operations.**
+**NETHIC is a decentralized AI platform on blockchain for secure on-chain training and NFT-based model ownership.**
 
-[![Twitter](https://img.shields.io/badge/Twitter-%231DA1F2.svg?logo=Twitter&logoColor=white)](https://twitter.com/SAZMIRLABS)
-[![Twitter](https://img.shields.io/badge/Twitter-%231DA1F2.svg?logo=Twitter&logoColor=white)](https://twitter.com/MCStern77)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-%230A66C2.svg?logo=linkedin&logoColor=white)](https://linkedin.com/in/michael-alan-stern)
-[![Website](https://img.shields.io/badge/Website-000000?logo=Google-Chrome&logoColor=white)](https://sazmirai.com/)
+[![Twitter](https://img.shields.io/badge/Twitter-%231DA1F2.svg?logo=Twitter&logoColor=white)](https://twitter.com/NETHICINFRA)
+[![Twitter](https://img.shields.io/badge/Twitter-%231DA1F2.svg?logo=Twitter&logoColor=white)](https://twitter.com/alexgeorgeedu)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-%230A66C2.svg?logo=linkedin&logoColor=white)](https://linkedin.com/in/-alexgeorge)
+[![Website](https://img.shields.io/badge/Website-000000?logo=Google-Chrome&logoColor=white)](https://nethicai.com/)
 
 
 ## 🌟 Features
@@ -23,7 +23,7 @@
 ## 🏗️ Architecture
 
 ```mermaid
-%% sazmir  AI Technical Architecture Diagram
+%% NETHIC  AI Technical Architecture Diagram
 graph TD
     subgraph Cloud_Providers
         AWS[AWS Region]
@@ -93,7 +93,7 @@ graph TD
 ## 🚀 Quick Start
 ### 1. Run with Docker (Dev Mode)
 ```
-git clone https://github.com/sazmir-ai/core.git
+git clone https://github.com/NETHIC-ai/core.git
 cd core/deploy
 
 # Start minimal cluster (Agent + Redis + Observability)
@@ -125,12 +125,12 @@ open http://localhost:3100
 
 ### Helm Deployment (Production)
 ```
-helm repo add biconic https://helm.sazmir.ai
-helm install biconic-agent sazmir/sazmir-agent \
+helm repo add biconic https://helm.NETHIC.ai
+helm install biconic-agent sazmir/NETHIC-agent \
   --namespace aelion-prod \
   --set global.tls.autoCert=true \
   --set autoscaler.minReplicas=10 \
-  --values https://config.sazmir.ai/v1/production.yaml
+  --values https://config.NETHIC.ai/v1/production.yaml
 ```
 
 ## ⚙️ Configuration
